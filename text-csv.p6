@@ -1,5 +1,5 @@
 #!/usr/bin/env perl6
-use Grammar::Debugger;
+
 class Text::CSV {
   has $.binary              = 1;
   has $.file_handle         = Nil;
@@ -37,7 +37,8 @@ class Text::CSV {
     my $buffpos   = 0;
     my $buffer    = $line;
     my $bopn      = 0;
-    my $reg       = /^{$.field_operator}|{$.field_operator}$/;
+    my $key;
+    #my $reg       = /^{$.field_operator}|{$.field_operator}$/; #this shit isn't implemented yet
 
     while $buffpos < $buffer.chars {
       if ( $buffer.substr($buffpos, $.field_operator.chars) eq $.field_operator &&
@@ -47,17 +48,21 @@ class Text::CSV {
       if ( $buffer.substr($buffpos, $.field_separator.chars) eq $.field_separator &&
            $localbuff ne $.escape_operator &&
            $bopn == 0 ) {
-        %values{ ( %header.exists($fcnt) ?? %header{ $fcnt } !! $fcnt ) } = $buffer.substr(0, $buffpos).subst($reg, '', :g);
+        $key = %header.exists($fcnt) ?? %header{ $fcnt } !! $fcnt;
+        %values{ $key } = $buffer.substr(0, $buffpos); #this shit isn't implemented yet .subst($reg, '', :g);
+        %values{ $key } = %values{ $key }.substr($.field_operator.chars, %values{ $key }.chars - ( $.field_operator.chars * 2 )) if %values{ $key }.substr(0, $.field_operator.chars) eq $.field_operator;
         $buffer = $buffer.substr($buffpos+1);
         $buffpos = 0;
         $fcnt++;
         next;
       }
       
-      $localbuff = ($localbuff.chars >= $.escape_operator.chars ?? $localbuff.substr(1) !! $localbuff) ~ $buffer.substr($buffpos, 1).subst($reg, '', :g);
+      $localbuff = ($localbuff.chars >= $.escape_operator.chars ?? $localbuff.substr(1) !! $localbuff) ~ $buffer.substr($buffpos, 1);
       $buffpos++;
     }
-    %values{ ( %header.exists($fcnt) ?? %header{ $fcnt } !! $fcnt ) } = $buffer;
+    $key = %header.exists($fcnt) ?? %header{ $fcnt } !! $fcnt;
+    %values{ $key } = $buffer;
+    %values{ $key } = %values{ $key }.substr($.field_operator.chars, %values{ $key }.chars - ( $.field_operator.chars * 2 )) if %values{ $key }.substr(0, $.field_operator.chars) eq $.field_operator;
 
     return %values;
   };
