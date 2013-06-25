@@ -1,1 +1,1 @@
-prove -e 'perl6' t
+prove -e 'perl6 -llib' t
