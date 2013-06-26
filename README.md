@@ -13,7 +13,7 @@ Pass in the following values if you feel like it:
     expects: 0 or 1  
       0: not a binary file
       1: file was opened as binary and all operator/separator options
-         are passed as Buf objects (instead of Str)
+         are *REQUIRED* to be passed as Buf objects (instead of Str)
   contains_header_row
     default: 0
     expects: 0 or 1
