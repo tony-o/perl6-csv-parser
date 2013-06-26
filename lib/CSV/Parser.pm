@@ -1,6 +1,6 @@
 #!/usr/bin/env perl6
 
-class Text::CSV {
+class CSV::Parser {
   has $.binary              = 0;
   has $.file_handle         = Nil;
   has $.contains_header_row = 0;
