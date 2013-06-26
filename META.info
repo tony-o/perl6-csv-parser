@@ -4,5 +4,5 @@
   "description" : "Parses CSV files, duh",
   "author"      : "Tony O'Dell",
   "depends"     : [ ],
-  "source-url"  : "git://bitbucket.org/segomos/CSV-Parser.git"
+  "source-url"  : "git://bitbucket.org/segomos/csv-parser.git"
 }
