@@ -6,7 +6,7 @@ plan 2;
 use CSV::Parser;
 
 my $outcome = 1;
-my $parser  = Text::CSV.new( field_separator => Buf.new(5), 
+my $parser  = CSV::Parser.new( field_separator => Buf.new(5), 
                              field_operator  => Buf.new(6), 
                              line_separator  => Buf.new(7),
                              escape_operator => Buf.new(8),
@@ -21,7 +21,7 @@ ok $outcome == 1;
 
 $outcome = 1;
 my $fh   = open 't/data/binary.csv', :r:bin;
-$parser  = Text::CSV.new( file_handle => $fh,
+$parser  = CSV::Parser.new( file_handle => $fh,
                           field_separator => '||'.encode('ASCII'), 
                           field_operator  => '\'\''.encode('ASCII'), 
                           line_separator  => "\n".encode('ASCII'),
