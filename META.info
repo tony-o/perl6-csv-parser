@@ -1,0 +1,8 @@
+{
+  "name"        : "CSV::Parser",
+  "version"     : "0.1.0",
+  "description" : "Parses CSV files, duh",
+  "author"      : "Tony O'Dell",
+  "depends"     : [ ],
+  "source-url"  : "git://bitbucket.org/segomos/CSV-Parser.git"
+}
