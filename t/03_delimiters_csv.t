@@ -3,7 +3,7 @@
 use Test;
 plan 1;
 
-use Text::CSV;
+use CSV::Parser;
 
 my $outcome = 1;
 my $fh      = open 't/data/delimiters.csv', :r;

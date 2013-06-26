@@ -3,7 +3,7 @@
 use Test;
 plan 2;
 
-use Text::CSV;
+use CSV::Parser;
 
 my $outcome = 1;
 my $parser  = Text::CSV.new( field_separator => Buf.new(5), 
