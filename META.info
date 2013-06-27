@@ -4,5 +4,5 @@
   "description" : "Parses CSV files, duh",
   "author"      : "Tony ODell",
   "depends"     : [ ],
-  "source-url"  : "git://bitbucket.org/segomos/csv-parser.git"
+  "source-url"  : "git@github.com:tony-o/perl6-csv-parser.git"
 } 
