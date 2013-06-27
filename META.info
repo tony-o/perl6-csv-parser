@@ -2,7 +2,7 @@
   "name"        : "CSV::Parser",
   "version"     : "0.1.0",
   "description" : "Parses CSV files, duh",
-  "author"      : "Tony O'Dell",
+  "author"      : "Tony ODell",
   "depends"     : [ ],
   "source-url"  : "git://bitbucket.org/segomos/csv-parser.git"
 }
