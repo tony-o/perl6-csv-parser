@@ -1,5 +1,5 @@
 #!/usr/bin/env perl6
-
+ 
 class CSV::Parser {
   has $.binary              = 0;
   has $.file_handle         = Nil;

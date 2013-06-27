@@ -5,4 +5,4 @@
   "author"      : "Tony ODell",
   "depends"     : [ ],
   "source-url"  : "git://bitbucket.org/segomos/csv-parser.git"
-}
+} 
