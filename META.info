@@ -4,9 +4,5 @@
   "description" : "Parses CSV files, duh",
   "author"      : "Tony ODell",
   "depends"     : [ ],
-<<<<<<< HEAD
-  "source-url"  : "git@github.com:tony-o/perl6-csv-parser.git"
-=======
   "source-url"  : "git://github.com/tony-o/perl6-csv-parser.git"
->>>>>>> c7cbcfa47f2d1608a15b26525a64d7a2f06d3c9e
 } 
