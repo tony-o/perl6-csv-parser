@@ -2,7 +2,7 @@
 
 use lib 'lib';
 use Test;
-plan 1;
+plan 2;
 
 use CSV::Parser;
 
@@ -21,3 +21,4 @@ $outcome = 0 if $keys != 5;
 
 $fh.close;
 ok $outcome == 1;
+ok 1 == 0;
