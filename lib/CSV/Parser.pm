@@ -27,18 +27,21 @@ class CSV::Parser {
       $buffer ~= $.line_separator if ( $.binary == 1 );
       last if $.detect_end_line( $buffer ) == 1;
     }
-    $buffer = $buffer.substr(0, $buffer.chars - 1) if $.binary == 0;
-    $buffer = $buffer.subbuf(0, $buffer.bytes - $.line_separator.bytes) if $.binary == 1;
-    $!lbuff = $buffer.substr($!bpos - 1) if $.binary == 0;
-    $!lbuff = $buffer.subbuf($!bpos - 1) if $.binary == 1;
-    $buffer = $buffer.substr(0, $!bpos) if $.binary == 0;
-    $buffer = $buffer.subbuf(0, $!bpos) if $.binary == 1;
+    if ($.binary == 1) {
+      $buffer = $buffer.subbuf(0, $buffer.bytes - $.line_separator.bytes);
+      $!lbuff = $buffer.subbuf($!bpos - 1);
+      $buffer = $buffer.subbuf(0, $!bpos);
+    } else {
+      $buffer = $buffer.substr(0, $buffer.chars - 1);
+      $!lbuff = $buffer.substr($!bpos - 1);
+      $buffer = $buffer.substr(0, $!bpos);
+    }
     if ( $!contains_header_row ) { 
       %!headers = $.parse( $buffer );
       $!contains_header_row = 0;
       return $.get_line();
     }
-    return $.parse( $buffer ); 
+    return $.parse( $buffer );
   };
 
   method parse ( $line ) {
@@ -65,12 +68,15 @@ class CSV::Parser {
              ( $.binary == 1 && $localbuff !eqv $.escape_operator ) ) &&
            $bopn == 0 ) {
         $key = %header.exists($fcnt) ?? %header{ $fcnt } !! $fcnt;
-        %values{ $key } = $buffer.substr(0, $buffpos) if $.binary == 0;
-        %values{ $key } = $buffer.subbuf(0, $buffpos) if $.binary == 1;
-        %values{ $key } = %values{ $key }.substr($.field_operator.chars, %values{ $key }.chars - ( $.field_operator.chars * 2 )) if $.binary == 0 && %values{ $key }.substr(0, $.field_operator.chars) eq  $.field_operator;
-        %values{ $key } = %values{ $key }.subbuf($.field_operator.bytes, %values{ $key }.bytes - ( $.field_operator.bytes * 2 )) if $.binary == 1 && %values{ $key }.subbuf(0, $.field_operator.bytes) eqv $.field_operator;
-        $buffer = $buffer.substr($buffpos+$.field_separator.chars) if $.binary == 0;
-        $buffer = $buffer.subbuf($buffpos+$.field_separator.bytes) if $.binary == 1;
+        if ($.binary == 1) {
+          %values{ $key } = $buffer.subbuf(0, $buffpos);
+          %values{ $key } = %values{ $key }.subbuf($.field_operator.bytes, %values{ $key }.bytes - ( $.field_operator.bytes * 2 )) if %values{ $key }.subbuf(0, $.field_operator.bytes) eqv $.field_operator;
+          $buffer = $buffer.subbuf($buffpos+$.field_separator.bytes);
+        } else {
+          %values{ $key } = $buffer.substr(0, $buffpos);
+          %values{ $key } = %values{ $key }.substr($.field_operator.chars, %values{ $key }.chars - ( $.field_operator.chars * 2 )) if %values{ $key }.substr(0, $.field_operator.chars) eq  $.field_operator;
+          $buffer = $buffer.substr($buffpos+$.field_separator.chars);
+        }
         $buffpos = 0;
         $fcnt++;
         next;
