@@ -16,6 +16,7 @@ class CSV::Parser {
   has $!lbuff               = '';
 
   method get_line () {
+    return Nil if $.file_handle.eof;
     $!lbuff = $!lbuff == '' ?? ( $.binary == 1 ?? Buf.new() !! '' ) !! $!lbuff;
     my $buffer = $!lbuff;
 
@@ -67,7 +68,7 @@ class CSV::Parser {
            ( ( $.binary == 0 && $localbuff ne   $.escape_operator ) || 
              ( $.binary == 1 && $localbuff !eqv $.escape_operator ) ) &&
            $bopn == 0 ) {
-        $key = %header.exists($fcnt) ?? %header{ $fcnt } !! $fcnt;
+        $key = %header{$fcnt}:exists ?? %header{ $fcnt } !! $fcnt;
         if ($.binary == 1) {
           %values{ $key } = $buffer.subbuf(0, $buffpos);
           %values{ $key } = %values{ $key }.subbuf($.field_operator.bytes, %values{ $key }.bytes - ( $.field_operator.bytes * 2 )) if %values{ $key }.subbuf(0, $.field_operator.bytes) eqv $.field_operator;
@@ -86,12 +87,12 @@ class CSV::Parser {
       $localbuff = ($localbuff.bytes >= $.escape_operator.bytes ?? $localbuff.subbuf(1) !! $localbuff) ~ $buffer.subbuf($buffpos, 1) if $.binary == 1; 
       $buffpos++;
     }
-    $key = %header.exists($fcnt) ?? %header{ $fcnt } !! $fcnt;
+    $key = %header{$fcnt}:exists ?? %header{ $fcnt } !! $fcnt;
     %values{ $key } = $buffer;
     %values{ $key } = %values{ $key }.substr($.field_operator.chars, %values{ $key }.chars - ( $.field_operator.chars * 2 )) if $.binary == 0 && %values{ $key }.substr(0, $.field_operator.chars) eq  $.field_operator;
     %values{ $key } = %values{ $key }.subbuf($.field_operator.bytes, %values{ $key }.bytes - ( $.field_operator.bytes * 2 )) if $.binary == 1 && %values{ $key }.subbuf(0, $.field_operator.bytes) eqv $.field_operator;
 
-    while %header.exists(++$fcnt) {
+    while %header{++$fcnt}:exists {
       %values{ %header{ $fcnt } } = Nil;
     }
 
