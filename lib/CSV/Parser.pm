@@ -38,7 +38,7 @@ class CSV::Parser {
       $buffer = $buffer.substr(0, $!bpos);
     }
     if ( $!contains_header_row ) { 
-      %!headers = $.parse( $buffer );
+      %!headers = %($.parse( $buffer ));
       $!contains_header_row = 0;
       return $.get_line();
     }
