@@ -8,7 +8,7 @@ use CSV::Parser;
 
 my $outcome = 1;
 my $fh      = open 't/data/multiline.csv', :r;
-my $parser  = CSV::Parser.new( file_handle => $fh , contains_header_row => 1 );
+my $parser  = CSV::Parser.new( file_handle => $fh , contains_header_row => True );
 my $keys    = 0;
 my %line    = %($parser.get_line());
 
