@@ -1,19 +1,19 @@
 #!/usr/bin/env perl6
  
 class CSV::Parser {
-  has Bool $.binary              = False;
-  has Any  $.file_handle         = Nil;
-  has Bool $.contains_header_row = False;
-  has Any  $.field_separator     = ',';
-  has Any  $.line_separator      = "\n";
-  has Any  $.field_operator      = '"';
-  has Any  $.escape_operator     = '\\';
-  has Int  $.chunk_size          = 1024;
-  has Int  $!fpos                = 0;
-  has Int  $!bpos                = 0;
-  has Int  $!bopn                = 0;
-  has Any  %!headers             = Nil;
-  has Any  $!lbuff               = '';
+  has Bool   $.binary              = False;
+  has Handle $.file_handle         = Nil;
+  has Bool   $.contains_header_row = False;
+  has Any    $.field_separator     = ',';
+  has Any    $.line_separator      = "\n";
+  has Any    $.field_operator      = '"';
+  has Any    $.escape_operator     = '\\';
+  has Int    $.chunk_size          = 1024;
+  has Int    $!fpos                = 0;
+  has Int    $!bpos                = 0;
+  has Int    $!bopn                = 0;
+  has Any    %!headers             = Nil;
+  has Any    $!lbuff               = '';
 
   method get_line () returns Hash {
     return Nil if $.file_handle.eof;
@@ -106,7 +106,7 @@ class CSV::Parser {
              ( $.binary == True && $buffer.subbuf($!bpos, $.field_operator.bytes) eqv $.field_operator ) ) &&
            ( ( $.binary == False && $localbuff ne   $.escape_operator ) || 
              ( $.binary == True && $localbuff !eqv $.escape_operator ) ) ) {
-        $!bopn = $!bopn == True ?? 0 !! 1;
+        $!bopn = $!bopn == 1 ?? 0 !! 1;
       }
 
       #detect line separator
