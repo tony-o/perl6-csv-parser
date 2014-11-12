@@ -2,9 +2,9 @@
   "name"        : "CSV::Parser",
   "version"     : "0.1.1",
   "description" : "Parses CSV files, duh",
-  "auth"        : "github:tony-o",
+  "auth"        : "auth:tony-o",
   "depends"     : [ ],
-  "provides" : {
+  "provides"    : {
     "CSV::Parser" : "lib/CSV/Parser.pm"
   },
   "source-url"  : "git://github.com/tony-o/perl6-csv-parser.git"
