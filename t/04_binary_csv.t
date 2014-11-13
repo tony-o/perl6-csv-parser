@@ -15,9 +15,9 @@ my $parser  = CSV::Parser.new( file_handle => $fh,
                           field_operator  => '\'\''.encode('ASCII'), 
                           line_separator  => Buf.new(0),
                           escape_operator => '\\'.encode('ASCII'),
-                          binary => 1 );
+                          binary => True );
 
-my %line2 = $parser.get_line();
+my %line2 = %($parser.get_line());
 my $k     = 0;
 
 for ($line) -> $v {

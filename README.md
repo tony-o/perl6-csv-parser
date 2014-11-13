@@ -9,10 +9,10 @@ Pass in the following values if you feel like it:
 ```
   file_handle          : pass me in some file you opened with 'open'
   binary              
-    default: 0
-    expects: 0 or 1  
-      0: not a binary file
-      1: file was opened as binary and all operator/separator options
+    default: False
+    expects: False or True  
+      False: not a binary file
+      True: file was opened as binary and all operator/separator options
          are *REQUIRED* to be passed as Buf objects (instead of Str)
   contains_header_row
     default: 0
@@ -23,8 +23,8 @@ Pass in the following values if you feel like it:
   field_separator      
     default: ','
     expects: variable length Str or Buf
-      Str: use a Str when binary == 0
-      Buf: use a Buf when binary == 1 or deal with errors.
+      Str: use a Str when binary == False
+      Buf: use a Buf when binary == True or deal with errors.
   line_separator
     default: "\n"
     expects: see field_separator - this will be included in a parsed value 
