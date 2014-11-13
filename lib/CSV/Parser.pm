@@ -15,7 +15,13 @@ class CSV::Parser {
   has %!headers             = Nil;
   has $!lbuff               = '';
 
-  method get_line () {
+  method reset () {
+    my $p = $.file_handle.path;
+    $.file_handle.close;
+    $.file_handle = open $p, :r;
+  }
+
+  method get_line () returns Hash {
     return Nil if $.file_handle.eof;
     $!lbuff = $!lbuff == '' ?? ( $.binary == 1 ?? Buf.new() !! '' ) !! $!lbuff;
     my $buffer = $!lbuff;
@@ -38,11 +44,11 @@ class CSV::Parser {
       $buffer = $buffer.substr(0, $!bpos);
     }
     if ( $!contains_header_row ) { 
-      %!headers = $.parse( $buffer );
+      %!headers = %($.parse( $buffer ));
       $!contains_header_row = 0;
       return $.get_line();
     }
-    return $.parse( $buffer );
+    return %($.parse( $buffer ));
   };
 
   method parse ( $line ) {
