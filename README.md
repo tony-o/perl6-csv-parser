@@ -49,6 +49,19 @@ Pass in the following values if you feel like it:
 ###get\_line ()
 will read a line or chunk from a file and return the parsed line.  if this is the first call to this function and the ```contains_header_row``` is set then this will parse the first 2 lines and use the first row's values as the column values
 
+####Example reading through an entire file
+```perl6
+my $fh     = open 'some.csv', :r;
+my $parser = CSV::Parser.new( file_handle => $fh, contains_header_row => True );
+
+until $fh.eof {
+  my %data = %($parser.get_line());
+  #do something here with your data hashish
+}
+
+$fh.close; #don't forget to close
+```
+
 ###parse ( ```line``` )
 will parse a Str or Buf in accordance with the options set.  set the damn ```binary``` flag if you are going to pass a Buf
 
