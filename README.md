@@ -53,11 +53,18 @@ will read a line or chunk from a file and return the parsed line.  if this is th
 ```perl6
 my $fh     = open 'some.csv', :r;
 my $parser = CSV::Parser.new( file_handle => $fh, contains_header_row => True );
+my %data;
 
 until $fh.eof {
-  my %data = %($parser.get_line());
+  %data = %($parser.get_line());
   #do something here with your data hashish
 }
+#or
+while %data = %($parser.get_line()) {
+  #do something with data here 
+}
+
+
 
 $fh.close; #don't forget to close
 ```

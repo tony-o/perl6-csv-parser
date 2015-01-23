@@ -21,7 +21,7 @@ class CSV::Parser {
     $.file_handle = open $p, :r;
   }
 
-  method get_line () returns Hash {
+  method get_line () {
     return Nil if $.file_handle.eof;
     $!lbuff = $!lbuff == '' ?? ( $.binary == True ?? Buf.new() !! '' ) !! $!lbuff;
     my Any $buffer = $!lbuff;
