@@ -12,8 +12,9 @@ class CSV::Parser {
   has Int        $!fpos                = 0;
   has Int        $!bpos                = 0;
   has Int        $!bopn                = 0;
-  has Any        %!headers             = Nil;
   has Any        $!lbuff               = '';
+
+  has Any        %!headers;
 
   method reset () {
     my $p = $.file_handle.path;
