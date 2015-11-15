@@ -24,7 +24,7 @@ class CSV::Parser {
 
   method get_line () {
     return Nil if $!file_handle.eof;
-    $!lbuff = Buf.new() if ?$!binary && not "{$!lbuff}";
+    $!lbuff = (?$!binary ?? Buf.new() !! '') if size_of($!lbuff);
     my $buffer = $!lbuff;
     $!bpos = $!bopn = 0;
     my $lso_size = size_of($!line_separator);
