@@ -24,19 +24,20 @@ class CSV::Parser {
 
   method get_line () {
     return Nil if $!file_handle.eof;
-    $!lbuff = Buf.new() if ?$!binary && not "{$!lbuff}";
+    $!lbuff = (?$!binary ?? Buf.new() !! '') if size_of($!lbuff);
     my $buffer = $!lbuff;
     $!bpos = $!bopn = 0;
+    my $lso_size = size_of($!line_separator);
 
     while ( ?$!binary ?? $!file_handle.read($!chunk_size) !! $!file_handle.get ) -> $line {
       $buffer ~= $line ~ $!line_separator;
       last if self.detect_end_line( $buffer ) == 1;
     }
 
-    if ($buffer."{self!sizer}"() - $!line_separator."{self!sizer}"()) -> $size {
-      $buffer  = $buffer."{self!subber}"(0, $size);
-      $!lbuff  = $buffer."{self!subber}"($!bpos - 1);
-      $buffer  = $buffer."{self!subber}"(0, $!bpos);
+    if (size_of($buffer) - $lso_size) -> $size {
+      $buffer  = subpart($buffer, 0, $size);
+      $!lbuff  = subpart($buffer, $!bpos - 1);
+      $buffer  = subpart($buffer, 0, $!bpos);
     }
 
     !$!contains_header_row ?? %(self.parse( $buffer )) !! do {
@@ -45,10 +46,6 @@ class CSV::Parser {
       self.get_line();
     }
   };
-
-  method !sizer  { ?$!binary ?? "bytes"  !! "chars"  }
-  method !subber { ?$!binary ?? "subbuf" !! "substr" }
-  method !cmper($a,$b)  { ?$!binary ?? ($a eqv $b) !! ($a eq $b) } # make me an infix
 
   method parse ( $line ) returns Hash {
     my %values      = ();
@@ -60,31 +57,35 @@ class CSV::Parser {
     my int $bopn    = 0;
     my $key;
     #my $reg       = /^{$.field_operator}|{$.field_operator}$/; #this shit isn't implemented yet
+    my $fop_size = size_of($!field_operator);
+    my $eop_size = size_of($!escape_operator);
+    my $lso_size = size_of($!line_separator);
 
-    while $buffpos < $buffer."{self!sizer}"() {
-      if self!cmper($buffer."{self!subber}"($buffpos, $!field_operator."{self!sizer}"()), $!field_operator )
-            && !self!cmper($localbuff, $!escape_operator) {
+    while $buffpos < size_of($buffer) {
+      if subpart($buffer, $buffpos, $fop_size) eqv $!field_operator && $localbuff !eqv $!escape_operator {
         $bopn = $bopn == 1 ?? 0 !! 1;
       }
 
-      if self!cmper($buffer."{self!subber}"($buffpos, $!field_separator."{self!sizer}"()), $!field_separator )
-            && !self!cmper($localbuff, $!escape_operator) && $bopn == 0 {
+      if subpart($buffer, $buffpos, $fop_size) eqv $!field_separator && $localbuff !eqv $!escape_operator && $bopn == 0 {
         $key = %header{(~$fcnt)}:exists ?? %header{~$fcnt} !! $fcnt;
-        %values{ $key } = $buffer."{self!subber}"(0, $buffpos);
-        %values{ $key } = %values{ $key }."{self!subber}"($!field_operator."{self!sizer}"(), %values{ $key }."{self!sizer}"() - ( $!field_operator."{self!sizer}"() * 2 ))\
-          if self!cmper( %values{ $key }."{self!subber}"(0, $!field_operator."{self!sizer}"()), $!field_operator);
-        $buffer = $buffer."{self!subber}"($buffpos+$!field_separator."{self!sizer}"());
+        my $buf := subpart($buffer, 0, $buffpos);
+        %values{ $key } = subpart($buf, 0, $fop_size) eqv $!field_operator
+          ?? subpart($buf, $fop_size, size_of($buf) - ( $fop_size * 2 ))
+          !! $buf;
+        $buffer = subpart($buffer, ($buffpos+$fop_size));
         $buffpos = 0;
         $fcnt++;
         next;
       }
       
-      $localbuff = ($localbuff."{self!sizer}"() >= $!escape_operator."{self!sizer}"() ?? $localbuff."{self!subber}"(1) !! $localbuff) ~ $buffer."{self!subber}"($buffpos, 1);
+      $localbuff = (size_of($localbuff) >= $eop_size
+        ?? subpart($localbuff, 1)
+        !! $localbuff) ~ subpart($buffer, $buffpos, 1);
       $buffpos++;
     }
     $key = %header{~$fcnt}:exists ?? %header{~$fcnt} !! $fcnt;
-    %values{ $key } = $buffer;
-    %values{ $key } = %values{ $key }."{self!subber}"($!field_operator."{self!sizer}"(), %values{ $key }."{self!sizer}"() - ( $!field_operator."{self!sizer}"() * 2 )) if self!cmper( %values{ $key }."{self!subber}"(0, $!field_operator."{self!sizer}"()), $!field_operator);
+    %values{ $key } = subpart($buffer, $fop_size, size_of($buffer) - ( $fop_size * 2 ))\
+      if subpart($buffer, 0, $fop_size) eqv $!field_operator;
 
     while %header{~(++$fcnt)}:exists {
       %values{%header{~$fcnt}} = Nil;
@@ -95,21 +96,32 @@ class CSV::Parser {
 
   method detect_end_line ( $buffer ) returns Bool {
     my $localbuff = ?$!binary ?? Buf.new() !! '';
-    while $!bpos < $buffer."{self!sizer}"() {
-      if self!cmper($buffer."{self!subber}"($!bpos, $!field_operator."{self!sizer}"()), $!field_operator )
-            && !self!cmper($localbuff, $!escape_operator) {
+    my $fop_size = size_of($!field_operator);
+    my $eop_size = size_of($!escape_operator);
+    my $lso_size = size_of($!line_separator);
+
+    while $!bpos < size_of($buffer) {
+      if subpart($buffer, $!bpos, $fop_size) eqv $!field_operator && $localbuff !eqv $!escape_operator {
         $!bopn = $!bopn == 1 ?? 0 !! 1;
       }
 
       #detect line separator
-      if self!cmper($buffer."{self!subber}"($!bpos, $!line_separator."{self!sizer}"()), $!line_separator )
-            && !self!cmper($localbuff, $!escape_operator) && $!bopn == 0 {
+      if subpart($buffer, $!bpos, $lso_size) eqv $!line_separator && $localbuff !eqv $!escape_operator && $!bopn == 0 {
         $!bpos++;
         return True;
       }
-      $localbuff = ($localbuff."{self!sizer}"() >= $!escape_operator."{self!sizer}"() ?? $localbuff."{self!subber}"(1) !! $localbuff) ~ $buffer."{self!subber}"($!bpos, 1);
+      $localbuff = (size_of($localbuff) >= $eop_size ?? subpart($localbuff, 1) !! $localbuff) ~ subpart($buffer, $!bpos, 1);
       $!bpos++;
     }
     return False;
   };
+
+  proto sub size_of(|) {*}
+  multi sub size_of(Blob $data) { $data.bytes }
+  multi sub size_of(Str $data)  { $data.chars }
+  multi sub size_of(Any $)      { 0 }
+
+  proto sub subpart(|) {*}
+  multi sub subpart(Blob $data, |c) { $data.subbuf(|c) }
+  multi sub subpart(Str $data,  |c) { $data.substr(|c) }
 };
