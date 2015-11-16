@@ -1,5 +1,5 @@
 #!/usr/bin/env perl6
- 
+
 class CSV::Parser {
   has Bool       $.binary              = False;
   has IO::Handle $.file_handle         = Nil;
@@ -12,7 +12,7 @@ class CSV::Parser {
   has int        $!fpos                = 0;
   has int        $!bpos                = 0;
   has int        $!bopn                = 0;
-  has            $!lbuff               = '';
+  has            $!lbuff;
 
   has        %!headers;
 
@@ -24,9 +24,9 @@ class CSV::Parser {
 
   method get_line () {
     return Nil if $!file_handle.eof;
-    $!lbuff = (?$!binary ?? Buf.new() !! '') if size_of($!lbuff);
-    my $buffer = $!lbuff;
-    $!bpos = $!bopn = 0;
+    $!lbuff = ?$!binary ?? Buf.new() !! '';
+    $!bpos  = $!bopn = 0;
+    my $buffer   = $!lbuff;
     my $lso_size = size_of($!line_separator);
 
     while ( ?$!binary ?? $!file_handle.read($!chunk_size) !! $!file_handle.get ) -> $line {
@@ -36,15 +36,14 @@ class CSV::Parser {
 
     if (size_of($buffer) - $lso_size) -> $size {
       $buffer  = subpart($buffer, 0, $size);
-      $!lbuff  = subpart($buffer, $!bpos - 1);
+      $!lbuff  = subpart($buffer, $!bpos - $lso_size);
       $buffer  = subpart($buffer, 0, $!bpos);
     }
-
     !$!contains_header_row ?? %(self.parse( $buffer )) !! do {
       %!headers = %(self.parse( $buffer ));
       $!contains_header_row = False;
       self.get_line();
-    }
+    };
   };
 
   method parse ( $line ) returns Hash {
@@ -58,6 +57,7 @@ class CSV::Parser {
     my $key;
     #my $reg       = /^{$.field_operator}|{$.field_operator}$/; #this shit isn't implemented yet
     my $fop_size = size_of($!field_operator);
+    my $fsp_size = size_of($!field_separator);
     my $eop_size = size_of($!escape_operator);
     my $lso_size = size_of($!line_separator);
 
@@ -66,23 +66,21 @@ class CSV::Parser {
         $bopn = $bopn == 1 ?? 0 !! 1;
       }
 
-      if subpart($buffer, $buffpos, $fop_size) eqv $!field_separator && $localbuff !eqv $!escape_operator && $bopn == 0 {
+      if $bopn == 0 && subpart($buffer, $buffpos, $fsp_size) eqv $!field_separator && $localbuff !eqv $!escape_operator {
         $key = %header{(~$fcnt)}:exists ?? %header{~$fcnt} !! $fcnt;
         my $buf := subpart($buffer, 0, $buffpos);
         %values{ $key } = subpart($buf, 0, $fop_size) eqv $!field_operator
           ?? subpart($buf, $fop_size, size_of($buf) - ( $fop_size * 2 ))
           !! $buf;
-        $buffer = subpart($buffer, ($buffpos+$fop_size));
+        $buffer = subpart($buffer, ($buffpos+$fsp_size));
         $buffpos = 0;
         $fcnt++;
         next;
       }
-      
-      $localbuff = (size_of($localbuff) >= $eop_size
-        ?? subpart($localbuff, 1)
-        !! $localbuff) ~ subpart($buffer, $buffpos, 1);
+      $localbuff = (size_of($localbuff) >= $eop_size ?? subpart($localbuff, $eop_size) !! $localbuff) ~ subpart($buffer, $buffpos, $eop_size);
       $buffpos++;
     }
+
     $key = %header{~$fcnt}:exists ?? %header{~$fcnt} !! $fcnt;
     %values{ $key } = subpart($buffer, $fop_size, size_of($buffer) - ( $fop_size * 2 ))\
       if subpart($buffer, 0, $fop_size) eqv $!field_operator;
@@ -110,7 +108,7 @@ class CSV::Parser {
         $!bpos++;
         return True;
       }
-      $localbuff = (size_of($localbuff) >= $eop_size ?? subpart($localbuff, 1) !! $localbuff) ~ subpart($buffer, $!bpos, 1);
+      $localbuff = (size_of($localbuff) >= $eop_size ?? subpart($localbuff, $eop_size) !! $localbuff) ~ subpart($buffer, $!bpos, $eop_size);
       $!bpos++;
     }
     return False;
