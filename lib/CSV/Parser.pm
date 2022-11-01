@@ -93,7 +93,7 @@ class CSV::Parser {
       %values{%header{~$fcnt}} = Nil;
     }
 
-    warn 'empty header key found' if %header.values.grep(* eq '');
+    warn 'empty header key found' if $header &&  %header.values.grep(* eq '');
     return %values;
   };
 
