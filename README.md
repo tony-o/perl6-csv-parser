@@ -1,6 +1,7 @@
 # README CSV::Parser
 
 ## Synopsis
+
 This module is pretty badass.  It reads CSV files line by line and can handle individual lines so you can handle your own file reads or you can let me do the damn work for you.  It handles binary files with relative ease so you can parse your binary 'Comma Separated Value' files like a pro.
 
 ## Options I Can Take
@@ -20,6 +21,13 @@ Pass in the following values if you feel like it:
       0: first line won't be interepreted as column names and parsed lines
          will be returned as a hash containing keys 0..X
       1: first line will be interpreted as column names
+  field_normalizer
+    default: -> $k, $v, :$header = False { $v }
+    expects: Callable with signature ($key, $value, :$header = False)
+      $key:    the header value if available, the column index otherwise
+      $value:  the value of the column
+      $header: whether we're parsing a header or a row value
+      return value: the final value for the column
   field_separator      
     default: ','
     expects: variable length Str or Buf
@@ -46,10 +54,16 @@ Pass in the following values if you feel like it:
 
 ## Methods my Bad Ass Provides
 
+### headers ()
+
+returns the headers parsed if available
+
 ### get\_line ()
+
 will read a line or chunk from a file and return the parsed line.  if this is the first call to this function and the ```contains_header_row``` is set then this will parse the first 2 lines and use the first row's values as the column values
 
 #### Example reading through an entire file
+
 ```perl6
 my $fh     = open 'some.csv', :r;
 my $parser = CSV::Parser.new( file_handle => $fh, contains_header_row => True );
@@ -70,6 +84,7 @@ $fh.close; #don't forget to close
 ```
 
 ### parse ( ```line``` )
+
 will parse a Str or Buf in accordance with the options set.  set the damn ```binary``` flag if you are going to pass a Buf
 
 

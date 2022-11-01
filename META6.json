@@ -1,7 +1,7 @@
 {
   "perl"        : "6.*",
   "name"        : "CSV::Parser",
-  "version"     : "0.1.2",
+  "version"     : "0.1.3",
   "description" : "Parses CSV files, duh",
   "auth"        : "zef:tony-o",
   "depends"     : [ ],

@@ -13,8 +13,11 @@ class CSV::Parser {
   has int        $!bpos                = 0;
   has int        $!bopn                = 0;
   has            $!lbuff;
+  has Callable   $.field_normalizer    = -> \k, \v, :$header = False { v };
 
   has        %!headers;
+
+  method headers () { %!headers }
 
   method reset () {
     my $p = $!file_handle.path;
@@ -39,14 +42,14 @@ class CSV::Parser {
       $!lbuff  = subpart($buffer, $!bpos - $lso_size);
       $buffer  = subpart($buffer, 0, $!bpos);
     }
-    !$!contains_header_row ?? %(self.parse( $buffer )) !! do {
-      %!headers = %(self.parse( $buffer ));
+    !$!contains_header_row ?? %(self.parse( $buffer, )) !! do {
+      %!headers = %(self.parse( $buffer, :header(True) ));
       $!contains_header_row = False;
       self.get_line();
     };
   };
 
-  method parse ( $line ) returns Hash {
+  method parse ( $line, :$header = False ) returns Hash {
     my %values      = ();
     my %header      = %!headers;
     my $localbuff   = ?$!binary ?? Buf.new() !! '';
@@ -71,7 +74,7 @@ class CSV::Parser {
         my $buf := subpart($buffer, 0, $buffpos);
         %values{ $key } = subpart($buf, 0, $fop_size) eqv $!field_operator
           ?? subpart($buf, $fop_size, size_of($buf) - ( $fop_size * 2 ))
-          !! $buf;
+          !! $.field_normalizer.($key, $buf, :$header);
         $buffer = subpart($buffer, ($buffpos+$fsp_size));
         $buffpos = 0;
         $fcnt++;
@@ -89,6 +92,8 @@ class CSV::Parser {
     while %header{~(++$fcnt)}:exists {
       %values{%header{~$fcnt}} = Nil;
     }
+
+    warn 'empty header key found' if %header.values.grep(* eq '');
     return %values;
   };
 
